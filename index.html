@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<!-- Sidebar -->
+<div class="w3-sidebar w3-light-grey w3-bar-block" style="width:25%">
+  <h3 class="w3-bar-item">Menu</h3>
+  <a href="#" class="w3-bar-item w3-button">Link 1</a>
+  <a href="#" class="w3-bar-item w3-button">Link 2</a>
+  <a href="#" class="w3-bar-item w3-button">Link 3</a>
+</div>
+<div style="margin-left:25%">
+  <form name="myform" onSubmit="return main()">
+    <input type="text" id="myVal" placeholder="Add some text&hellip;">
+  </form><button onclick="main()">Enter</button>
+  <svg width="960" height="900"></svg>
+</div>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+  var svg = d3.select("svg"),
+    width = +svg.attr("width"),
+    height = +svg.attr("height"),
+    color = d3.scaleOrdinal(d3.schemeCategory10);
+
+  // var svg2 = d3
+  //   .select("body")
+  //   .append("svg")
+  //   .attr("height", 200)
+  //   .attr("width", 300)
+  // var rect = svg2
+  //   .append("rect")
+  //   .attr("height", 200)
+  //   .attr("width", 300)
+  //   .attr("fill", "red")
+  // var circle = svg2
+  //   .append("circle")
+  //   .attr("cx", 150)
+  //   .attr("cy", 100)
+  //   .attr("r", "80")
+  //   .attr("fill", "green")
+  //
+  // var text = svg.append("text")
+  //   .attr("x", 150)
+  //   .attr("y", 125)
+  //   .attr("font-size", 60)
+  //   .attr("text-anchor", "middle")
+  //   .attr("fill", "blue")
+  //   .text("SVG")
+
+  var nodes = {}
+  var links = [];
+  var simulation = d3.forceSimulation(nodes)
+    .force("charge", d3.forceManyBody().strength(-50))
+    .force("link", d3.forceLink(links).distance(50))
+    .force("x", d3.forceX())
+    .force("y", d3.forceY())
+    .alphaTarget(1)
+    .on("tick", ticked);
+
+  var g = svg.append("g").attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+  var link = g.append("g").attr("stroke", "#000").attr("stroke-width", 1.5).selectAll(".link")
+  var node = g.append("g").attr("stroke", "#fff").attr("stroke-width", 1.5).selectAll(".node");
+
+  function main() {
+    // Apply the general update pattern to the nodes.
+    nodes = JSON.parse(document.getElementById("myVal").value)
+
+    node = node.data(nodes).enter().append("g")
+
+    node.append("circle")
+      .attr("fill", function(d) {
+        return color(d.id);
+      }).attr("r", 8)
+      .on('mouseover', function() {
+        d3.select(this)
+          .transition()
+          .duration(1000)
+          .attr('stroke-width', 20)
+      })
+      .on('mouseout', function() {
+        d3.select(this)
+          .transition()
+          .duration(1000)
+          .attr('stroke-width', 0)
+      })
+
+    node.append("text")
+      .attr("x", 150)
+      .attr("y", 125)
+      .attr("font-size", 20)
+      .attr("text-anchor", "middle")
+      .attr("fill", "blue").text(function(d) {
+        return d.classes[0].name
+      })
+
+    // Apply the general update pattern to the links.
+    link = link.data(links, function(d) {
+      return d.source.id + "-" + d.target.id;
+    });
+    link.exit().remove();
+    link = link.enter().append("line").merge(link);
+
+    // Update and restart the simulation.
+    simulation.nodes(nodes);
+    simulation.force("link").links(links);
+    simulation.alpha(1).restart();
+  }
+
+
+  function ticked() {
+    node.selectAll("circle").attr("cx", function(d) {
+        return d.x;
+      })
+      .attr("cy", function(d) {
+        return d.y;
+      })
+    node.selectAll("text").attr("x", function(d) {
+        return d.x;
+      })
+      .attr("y", function(d) {
+        return d.y;
+      })
+
+    link.attr("x1", function(d) {
+        return d.source.x;
+      })
+      .attr("y1", function(d) {
+        return d.source.y;
+      })
+      .attr("x2", function(d) {
+        return d.target.x;
+      })
+      .attr("y2", function(d) {
+        return d.target.y;
+      });
+  }
+</script>
